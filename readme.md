@@ -10,8 +10,8 @@ Complete setup to create authentication using with
 
 ## To start this Server first run cmd
 
-> yarn install or npm install
+> ### yarn install or npm install
 
 ## Then run cmd
 
-> yarn start or npm start
+> ### yarn start or npm start
