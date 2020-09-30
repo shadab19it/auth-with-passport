@@ -6,6 +6,7 @@ Complete setup to create authentication using with
 > - mySql
 > - react.js
 > - passport.js
+> - typeScript
 
 ## To start this Server first run cmd
 
