@@ -14,9 +14,6 @@ import flash from "express-flash";
 // my import Routes
 import auth from "./routes/auth";
 
-// Initialize Passport
-InitializePassport(passport);
-
 /**
  * DB Connection
  */
@@ -27,6 +24,7 @@ myDB.connect((err: MysqlError) => {
     console.log("DB Connected Successfully");
   }
 });
+
 /**
  * Middleware
  */
@@ -37,6 +35,9 @@ app.use(expressSession({ secret: process.env.SECRET_SESSION, resave: false, save
 app.use(passport.initialize());
 app.use(passport.session());
 app.use(flash());
+
+// Initialize Passport
+InitializePassport(passport);
 
 /**
  * Use Routes

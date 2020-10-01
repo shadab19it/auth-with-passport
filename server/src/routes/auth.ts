@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { UserLogOut, UserLoign, UserSignUp } from "../controler/auth";
+import { isSignedIn, UserLogOut, UserLoign, UserSignUp } from "../controler/auth";
 import { check } from "express-validator";
 import passport from "passport";
 const router = Router();
@@ -30,6 +30,16 @@ router.get("/login/failed", (req, res) => {
   res.json({ error: req.flash("msg")[0] });
 });
 
-router.get("/logout", UserLogOut);
+router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
+
+router.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/api/user/auth/google/fail" }), (req: any, res) => {
+  res.json({ msg: "Login Successfull", User: req.user });
+});
+
+router.get("/auth/google/fail", (req, res) => {
+  res.json("Error");
+});
+
+router.get("/logout", isSignedIn, UserLogOut);
 
 export default router;

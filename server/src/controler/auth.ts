@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { myDB } from "../Config/dbConfig";
 import { validationResult } from "express-validator";
 import bcrypt from "bcrypt";
+import { nextTick } from "process";
 
 interface User {
   name: string;
@@ -51,10 +52,14 @@ export const UserSignUp = async (req: Request, res: Response) => {
 };
 
 export const UserLogOut = (req: Request, res: Response) => {
+  req.logOut();
+  res.clearCookie("connect.sid");
+  return res.json({ msg: "User logout", isSignIn: req.isAuthenticated() });
+};
+
+export const isSignedIn = (req: Request, res: Response, next) => {
   if (req.isAuthenticated()) {
-    req.logOut();
-    res.clearCookie("connect.sid");
-    return res.json({ msg: "User logout", isSignIn: req.isAuthenticated() });
+    next();
   }
-  return res.json({ msg: "you are already logout" });
+  return res.status(500).json({ msg: "ACCESS_DENIED" });
 };
