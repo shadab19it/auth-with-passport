@@ -47,14 +47,14 @@ export const UserSignUp = async (req: Request, res: Response) => {
     if (err) {
       return res.status(401).json({ error: "user not not sign up", err: err });
     }
-    return res.status(201).json({ msg: "User SignUp successfully !", userId: result.insertId });
+    return res.status(201).json({ msg: "User SignUp successfully !" });
   });
 };
 
 export const UserLogOut = (req: Request, res: Response) => {
   req.logOut();
   res.clearCookie("connect.sid");
-  return res.json({ msg: "User logout", isSignIn: req.isAuthenticated() });
+  return res.status(200).json({ msg: "User logout" });
 };
 
 export const isSignedIn = (req: Request, res: Response, next) => {

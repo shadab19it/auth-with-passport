@@ -17,7 +17,7 @@ router.post(
 );
 
 /**
- * Login User
+ * Login User with passport local
  */
 router.post(
   "/login",
@@ -27,18 +27,35 @@ router.post(
 );
 
 router.get("/login/failed", (req, res) => {
-  res.json({ error: req.flash("msg")[0] });
+  return res.status(400).json({ msg: req.flash("msg")[0] });
 });
+
+/**
+ * Google login route with passport
+ */
 
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/api/user/auth/google/fail" }), (req: any, res) => {
-  res.json({ msg: "Login Successfull", User: req.user });
+  return res.status(201).json({ msg: "Login Successfull", user: req.user });
 });
 
 router.get("/auth/google/fail", (req, res) => {
-  res.json("Error");
+  return res.status(400).json({ error: "You are not login , Somting wents wrong" });
 });
+
+/**
+ * Facewbook login route with passport
+ */
+router.get("/auth/facebook", passport.authenticate("facebook"));
+
+router.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/api/user/auth/facebook" }), (req, res) => {
+  return res.status(201).json({ msg: "Login Successfull", user: req.user });
+});
+
+/**
+ * LogOut route
+ */
 
 router.get("/logout", isSignedIn, UserLogOut);
 

@@ -1,5 +1,6 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
+import { Strategy as FacebookStrategy } from "passport-facebook";
 import { myDB } from "./dbConfig";
 import bcrypt from "bcrypt";
 import { validationResult } from "express-validator";
@@ -17,6 +18,9 @@ export interface IUserRes {
 }
 
 const InitializePassport = (passport: any) => {
+  /**
+   * Local Login
+   */
   passport.use(
     new LocalStrategy({ usernameField: "email", passwordField: "password", passReqToCallback: true }, (req, email, password, done) => {
       const error = validationResult(req);
@@ -45,6 +49,9 @@ const InitializePassport = (passport: any) => {
     })
   );
 
+  /**
+   * Google login
+   */
   passport.use(
     new GoogleStrategy(
       {
@@ -66,18 +73,60 @@ const InitializePassport = (passport: any) => {
             email: profile._json.email,
             profile_image_path: profile._json.picture,
           };
-          const inserSql = `INSERT INTO members SET ?`;
-          myDB.query(inserSql, memberInfo, (err, result: mysqlRes) => {
+          const insertSql = `INSERT INTO members SET ?`;
+          myDB.query(insertSql, memberInfo, (err, result: mysqlRes) => {
             if (err) done(err);
-            const user = {
+            const userId = {
               id: result.insertId,
             };
-            return done(null, user);
+            return done(null, userId);
           });
         });
       }
     )
   );
+
+  /**
+   * Facewbook login
+   */
+
+  passport.use(
+    new FacebookStrategy(
+      {
+        clientID: process.env.FACEBOOK_APP_ID,
+        clientSecret: process.env.FACEBOOK_APP_SECRET,
+        callbackURL: "http://localhost:9000/api/user/auth/facebook/callback",
+        profileFields: ["id", "displayName", "photos", "email"],
+      },
+      (accessToken, refreshToken, profile, done) => {
+        const sql = `SELECT * FROM members WHERE google_id = ${profile.id}`;
+        myDB.query(sql, (err, existUser: IUserRes[]) => {
+          if (err) done(err);
+          if (existUser.length > 0) {
+            return done(null, existUser[0]);
+          }
+          const memberInfo = {
+            google_id: profile.id,
+            username: profile.displayName,
+            email: profile._json.email || "",
+            profile_image_path: profile.photos[0].value,
+          };
+          const insertSql = `INSERT INTO members SET ?`;
+          myDB.query(insertSql, memberInfo, (err, result: mysqlRes) => {
+            if (err) done(err);
+            const userId = {
+              id: result.insertId,
+            };
+            return done(null, userId);
+          });
+        });
+      }
+    )
+  );
+
+  /**
+   * serialize and deserialize User
+   */
 
   passport.serializeUser((user: IUserRes, done) => {
     done(null, user.id);
