@@ -22,7 +22,7 @@ const InitializePassport = (passport: any) => {
    * Local Login
    */
   passport.use(
-    new LocalStrategy({ usernameField: "email", passwordField: "password", passReqToCallback: true }, (req, email, password, done) => {
+    new LocalStrategy({ usernameField: "email", passwordField: "password", passReqToCallback: true }, (req: any, email, password, done) => {
       const error = validationResult(req);
       if (!error.isEmpty()) {
         return done(null, false, req.flash("msg", `${error.array()[0].msg}`));
@@ -39,6 +39,7 @@ const InitializePassport = (passport: any) => {
 
         try {
           if (await bcrypt.compare(password, result[0].hasHpassword)) {
+            result[0].hasHpassword = undefined;
             return done(null, result[0]);
           }
           return done(null, false, req.flash("msg", `Password does not matched`));
@@ -136,7 +137,8 @@ const InitializePassport = (passport: any) => {
     const sql = `select * from members where id = ${id}`;
     myDB.query(sql, (err, existUser: IUserRes[]) => {
       if (err) done(err);
-      return done(null, existUser[0]);
+      existUser[0].hasHpassword = undefined;
+      done(null, existUser[0]);
     });
   });
 };

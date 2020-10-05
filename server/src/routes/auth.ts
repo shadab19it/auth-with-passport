@@ -27,7 +27,8 @@ router.post(
 );
 
 router.get("/login/failed", (req, res) => {
-  return res.status(400).json({ msg: req.flash("msg")[0] });
+  const msg = req.flash("msg")[0];
+  res.status(401).json({ msg });
 });
 
 /**
@@ -37,7 +38,8 @@ router.get("/login/failed", (req, res) => {
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/api/user/auth/google/fail" }), (req: any, res) => {
-  return res.status(201).json({ msg: "Login Successfull", user: req.user });
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  return res.status(201).json({ user: req.user });
 });
 
 router.get("/auth/google/fail", (req, res) => {
