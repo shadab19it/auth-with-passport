@@ -1,4 +1,4 @@
-# Authentication setup with node.js , mysql and react.js
+# Authentication Setup
 
 Complete setup to create authentication using with
 
