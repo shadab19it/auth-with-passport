@@ -1,6 +1,7 @@
 import { API } from "../BackedApi/BackendApi";
 import { State } from "../pages/Login/Login";
 import Cookies from "universal-cookie";
+import { AlertToast } from "../components/ErrorHandle/AlertInfo";
 const cookie = new Cookies();
 
 export const setCookie = (name: string, value: any) => {
@@ -15,11 +16,21 @@ export interface IUserRes {
   profile_image_path: string;
 }
 
-export interface ResMsg {
+export interface UserWT {
+  user: IUserRes;
+  token: string;
+}
+export interface ResProfile {
+  profile: UserWT;
   msg: string;
 }
 
-export const AuthSignUp = async (value: State, onSuccess: (r: ResMsg) => void) => {
+export interface ResError {
+  msg: string;
+  error?: string;
+}
+
+export const AuthSignUp = async (value: State, onSuccess: (r: ResError) => void) => {
   try {
     const res = await fetch(`${API}/user/signup`, {
       method: "POST",
@@ -30,18 +41,18 @@ export const AuthSignUp = async (value: State, onSuccess: (r: ResMsg) => void) =
       body: JSON.stringify(value),
     });
     if (res.status === 201 && res.body) {
-      const r = (await res.json()) as ResMsg;
+      const r = (await res.json()) as ResError;
       onSuccess(r);
     } else if (res.status === 401 && res.body) {
-      const r = await res.json();
-      console.log("Unautherised Erroe " + r.error);
+      const r = (await res.json()) as ResError;
+      AlertToast(r.msg);
     }
   } catch (err) {
     console.log(err);
   }
 };
 
-export const AuthLogin = async (value: State, onSuccess: (r: IUserRes) => void) => {
+export const AuthLogin = async (value: State, onSuccess: (r: ResProfile) => void) => {
   try {
     const res = await fetch(`${API}/user/login`, {
       method: "POST",
@@ -52,14 +63,15 @@ export const AuthLogin = async (value: State, onSuccess: (r: IUserRes) => void) 
       body: JSON.stringify(value),
     });
     if (res.status === 201 && res.body) {
-      const r = (await res.json()) as IUserRes;
+      const r = (await res.json()) as ResProfile;
       onSuccess(r);
+      AlertToast(r.msg);
     } else if (res.status === 401 && res.body) {
-      const r = await res.json();
-      console.log("Unautherised Erroe " + JSON.stringify(r));
-    } else if (res.status === 400 && res.body) {
-      const r = (await res.json()) as ResMsg;
-      console.log("backend msg " + JSON.stringify(r));
+      const e = (await res.json()) as ResError;
+      AlertToast(e.msg);
+    } else if (res.body) {
+      const r = (await res.json()) as ResError;
+      console.log("backend msg " + r);
     } else {
       console.log("notting");
     }
@@ -122,19 +134,6 @@ export const FacebookLogin = async (onSuccess: (r: IUserRes) => void) => {
   }
 };
 
-export const test = async () => {
-  console.log("test run");
-  try {
-    const res = await fetch(`http://localhost:9000/new`, {
-      method: "GET",
-    });
-    const r = (await res.json()) as any;
-    console.log("rere " + JSON.stringify(r));
-  } catch (err) {
-    console.log(err);
-  }
-};
-
 export const UserLogOut = async (next: any) => {
   if (typeof window !== undefined) {
     cookie.remove("user", { path: "/" });
@@ -145,7 +144,7 @@ export const UserLogOut = async (next: any) => {
       method: "GET",
     });
     if (res.status === 201 && res.body) {
-      const r = (await res.json()) as ResMsg;
+      const r = (await res.json()) as ResError;
       console.log(r.msg);
     } else if (res.body) {
       const r = await res.json();
@@ -156,7 +155,7 @@ export const UserLogOut = async (next: any) => {
   }
 };
 
-export const Authenticate = (user: IUserRes, next: any) => {
+export const Authenticate = (user: UserWT, next: any) => {
   if (document.cookie !== undefined) {
     setCookie("user", user);
   }

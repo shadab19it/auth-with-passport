@@ -17,31 +17,28 @@ const Form: FC<IProps> = ({ formType, onSubmit, handleChange, value }) => {
   const history = useHistory();
 
   const onGoogleLogin = () => {
-    GoogleLogin((r) => {
-      Authenticate(r, () => {
-        history.push("/");
-      });
-    });
+    // GoogleLogin((r:any) => {
+    //   Authenticate(r, () => {
+    //     history.push("/");
+    //   });
+    // });
   };
   const onFacebookLogin = () => {
-    FacebookLogin((r) => {
-      Authenticate(r, () => {
-        history.push("/");
-      });
-    });
+    // FacebookLogin((r) => {
+    //   Authenticate(r, () => {
+    //     history.push("/");
+    //   });
+    // });
   };
   return (
     <div className='form-wrapper'>
       <Box className='form-container' p={1}>
         {formType === "login" ? <h2>Login</h2> : <h2>Sign Up</h2>}
-
         <div className='input-boxes'>
-          {formType !== "login" ? (
+          {formType !== "login" && (
             <div className='input-box'>
               <TextField id='outlined-basic1' label='Name' value={value.username} variant='outlined' onChange={handleChange("username")} />
             </div>
-          ) : (
-            ""
           )}
 
           <div className='input-box'>
@@ -65,6 +62,19 @@ const Form: FC<IProps> = ({ formType, onSubmit, handleChange, value }) => {
               onChange={handleChange("password")}
             />
           </div>
+          {formType === "signup" && (
+            <div className='input-box'>
+              <TextField
+                id='outlined-password-input2'
+                label='Confirm Password'
+                type='password'
+                value={value.password2}
+                autoComplete='current-password'
+                variant='outlined'
+                onChange={handleChange("password2")}
+              />
+            </div>
+          )}
           <div className='input-box'>
             <Button variant='contained' color='primary' style={{ width: "100%", height: "40px", marginTop: "20px" }} onClick={onSubmit}>
               Submit

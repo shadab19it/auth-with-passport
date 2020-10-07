@@ -1,14 +1,16 @@
 import { Avatar, IconButton } from "@material-ui/core";
 import React, { FC } from "react";
+
 import "./Header.scss";
+
 import { useHistory, useLocation } from "react-router-dom";
-import { isAuthenticated, UserLogOut } from "../../services/AuthService";
+import { isAuthenticated, ResProfile, UserLogOut, UserWT } from "../../services/AuthService";
 
 const Header: FC = () => {
   const location = useLocation();
   const history = useHistory();
 
-  const { user } = isAuthenticated();
+  const { user }: UserWT = isAuthenticated();
 
   const ActiveLink = (l: string) => {
     if (location.pathname == l) {
@@ -20,14 +22,18 @@ const Header: FC = () => {
     <div className='header-wrapper'>
       <div className='left-h-content'>
         <div className='user-profile'>
-          <div className='user-img'>
-            <IconButton>
-              <Avatar alt='Shadab Alam' src='' />
-            </IconButton>
-          </div>
-          <div className='user-name'>
-            <h3>Shadab Alam</h3>
-          </div>
+          {user && (
+            <>
+              <div className='user-img'>
+                <IconButton>
+                  <Avatar alt='Shadab Alam' src={user.profile_image_path} />
+                </IconButton>
+              </div>
+              <div className='user-name'>
+                <h3>{user.username}</h3>
+              </div>
+            </>
+          )}
         </div>
       </div>
       <div className='right-h-content'>

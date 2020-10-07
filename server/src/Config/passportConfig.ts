@@ -1,11 +1,15 @@
 import { Strategy as LocalStrategy } from "passport-local";
 import { Strategy as GoogleStrategy } from "passport-google-oauth2";
 import { Strategy as FacebookStrategy } from "passport-facebook";
+import jwt from "jsonwebtoken";
+import { Strategy as JWTStrategy, ExtractJwt } from "passport-jwt";
 import { myDB } from "./dbConfig";
+import { findUserById, mysqlRes } from "../controler/auth";
 import bcrypt from "bcrypt";
-import { validationResult } from "express-validator";
+
 import dotenv from "dotenv";
-import { mysqlRes } from "../controler/auth";
+import { validationResult } from "express-validator";
+import flash from "express-flash";
 dotenv.config();
 
 export interface IUserRes {
@@ -22,27 +26,27 @@ const InitializePassport = (passport: any) => {
    * Local Login
    */
   passport.use(
-    new LocalStrategy({ usernameField: "email", passwordField: "password", passReqToCallback: true }, (req: any, email, password, done) => {
-      const error = validationResult(req);
-      if (!error.isEmpty()) {
-        return done(null, false, req.flash("msg", `${error.array()[0].msg}`));
-      }
+    new LocalStrategy({ usernameField: "email", passwordField: "password", session: false }, async (email, password, done) => {
       const sql = `SELECT * FROM members WHERE email = ?`;
       myDB.query(sql, [email], async (err, result: IUserRes[]) => {
         if (err) {
-          return done(err, false, req.flash("msg", `SomeThing wents wrong`));
+          return done(err, false, { message: "Something wents wrong" });
         }
-
         if (result.length === 0) {
-          return done(null, false, req.flash("msg", `User Invalied`));
+          return done(null, false, { message: "You are not register " });
         }
-
         try {
           if (await bcrypt.compare(password, result[0].hasHpassword)) {
             result[0].hasHpassword = undefined;
-            return done(null, result[0]);
+            const { id, username, email } = result[0];
+            const token = jwt.sign({ id, username, email }, process.env.JWT_SECRET_KEY);
+            const profile = {
+              user: result[0],
+              token,
+            };
+            return done(null, profile);
           }
-          return done(null, false, req.flash("msg", `Password does not matched`));
+          return done(null, false, { message: "Password does not matched" });
         } catch (err) {
           done(err);
         }
@@ -126,21 +130,45 @@ const InitializePassport = (passport: any) => {
   );
 
   /**
+   * Authentication Checker
+   */
+  passport.use(
+    "jwt",
+    new JWTStrategy(
+      {
+        jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
+        secretOrKey: process.env.JWT_SECRET_KEY,
+      },
+      async (jwtPayload, done) => {
+        try {
+          const user = await findUserById(jwtPayload.id);
+          if (!user) {
+            return done(null, false);
+          }
+          return done(null, user);
+        } catch (err) {
+          return done(err);
+        }
+      }
+    )
+  );
+
+  /**
    * serialize and deserialize User
    */
 
-  passport.serializeUser((user: IUserRes, done) => {
-    done(null, user.id);
-  });
+  // passport.serializeUser((user: IUserRes, done) => {
+  //   done(null, user.id);
+  // });
 
-  passport.deserializeUser((id, done) => {
-    const sql = `select * from members where id = ${id}`;
-    myDB.query(sql, (err, existUser: IUserRes[]) => {
-      if (err) done(err);
-      existUser[0].hasHpassword = undefined;
-      done(null, existUser[0]);
-    });
-  });
+  // passport.deserializeUser((id, done) => {
+  //   const sql = `select * from members where id = ${id}`;
+  //   myDB.query(sql, (err, existUser: IUserRes[]) => {
+  //     if (err) done(err);
+  //     existUser[0].hasHpassword = undefined;
+  //     done(null, existUser[0]);
+  //   });
+  // });
 };
 
 export default InitializePassport;

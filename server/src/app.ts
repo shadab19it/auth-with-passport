@@ -15,6 +15,7 @@ const app: Application = express();
 
 // my import Routes
 import auth from "./routes/auth";
+import { checkAuth } from "./routes/auth";
 
 // Initialize Passport
 InitializePassport(passport);
@@ -30,29 +31,21 @@ myDB.connect((err: MysqlError) => {
   }
 });
 
-const sessionOpt = {
-  secret: process.env.SECRET_SESSION,
-  resave: false,
-  saveUninitialized: true,
-  rolling: true,
-  name: "sid",
-  cookie: {
-    httpOnly: true,
-    maxAge: 20 * 60 * 1000, // 20 minutes
-  },
-};
-
 /**
  * Middleware
  */
-app.use(cors());
-app.use(flash());
-app.use(morgan("combined"));
+app.use(
+  cors({
+    origin: "*",
+    credentials: true,
+    preflightContinue: true,
+    optionsSuccessStatus: 200,
+  })
+);
 app.use(cookieParser());
 app.use(bodyParser.json({ type: "application/*+json" }));
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.json());
-app.use(expressSession(sessionOpt));
 app.use(passport.initialize());
 app.use(passport.session());
 
@@ -60,9 +53,7 @@ app.use(passport.session());
  * Use Routes
  */
 app.get("/new", (req: any, res: Response) => {
-  console.log(req.profile);
-
-  res.json({ body: "hello", isSignIn: req.isAuthenticated(), username: req.user ? req.user.username : "" });
+  res.json({ body: "hello", isSignIn: true, username: req.user ? req.user : "no" });
 });
 app.use("/api/user", auth);
 

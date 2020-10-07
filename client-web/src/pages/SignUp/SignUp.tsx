@@ -4,14 +4,17 @@ import Form from "../../components/Form/Form";
 import { State } from "../Login/Login";
 import { AuthSignUp } from "../../services/AuthService";
 import { useHistory } from "react-router-dom";
+import { AlertToast } from "../../components/ErrorHandle/AlertInfo";
 
 const SignUp: FC = () => {
   const history = useHistory();
   const [values, setValues] = React.useState<State>({
-    username: "zik",
-    password: "123",
-    email: "zikra@gmail.com",
+    username: "",
+    password: "",
+    password2: "",
+    email: "",
   });
+  const { username, password2, password, email } = values;
 
   const handleChange = (f: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setValues({ ...values, [f]: e.target.value });
@@ -20,7 +23,8 @@ const SignUp: FC = () => {
     e.preventDefault();
     AuthSignUp(values, (r) => {
       if (r.msg) {
-        setValues({ ...values, username: "", email: "", password: "" });
+        AlertToast(r.msg);
+        setValues({ ...values, username: "", email: "", password: "", password2: "" });
         history.push("/login");
       }
     });
@@ -28,7 +32,7 @@ const SignUp: FC = () => {
 
   return (
     <div className='signup-wrapper'>
-      <Form onSubmit={onSubmit} value={values} handleChange={handleChange} />
+      <Form formType='signup' onSubmit={onSubmit} value={values} handleChange={handleChange} />
     </div>
   );
 };

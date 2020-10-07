@@ -19,6 +19,11 @@
       line-height: 1.2;
       padding-right: 150px;
     }
+    h3 {
+      @extend h2;
+      font-size: 4rem;
+      color: lightcyan;
+    }
     p {
       font-size: 1.8rem;
       margin: 20px 0 40px 0;
