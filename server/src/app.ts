@@ -53,7 +53,11 @@ app.use(passport.session());
  * Use Routes
  */
 app.get("/new", (req: any, res: Response) => {
+<<<<<<< HEAD
   res.json({ body: "hello", isSignIn: true, username: req.user ? req.user : "no" });
+=======
+  res.json({ body: "hello", isSignIn: req.isAuthenticated(), username: req.user ? req.user.username : "" });
+>>>>>>> a77182214d80280e0c89399fb3da1c4d561ca0b3
 });
 app.use("/api/user", auth);
 
