@@ -16,6 +16,7 @@ const Header: FC = () => {
     if (location.pathname == l) {
       return "active-link";
     }
+    return "dective-link";
   };
 
   return (

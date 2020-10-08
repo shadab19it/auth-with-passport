@@ -1,27 +1,58 @@
-import { Box, Button, Grid, TextField, Theme } from "@material-ui/core";
-import React, { FC } from "react";
+import { Box, Button, Collapse, Grid, IconButton, TextField, Theme } from "@material-ui/core";
+import React, { FC, useEffect } from "react";
 import "./Form.scss";
 import GIcon from "../../assest/icons/gIcon.png";
 import FIcon from "../../assest/icons/f.webp";
 import { State } from "../../pages/Login/Login";
 import { useHistory } from "react-router-dom";
 import { Authenticate, FacebookLogin, GoogleLogin } from "../../services/AuthService";
+import { Alert } from "@material-ui/lab";
+import CloseIcon from "@material-ui/icons/Close";
+
 interface IProps {
   handleChange: (field: string) => (event: React.ChangeEvent<HTMLInputElement>) => void;
   onSubmit: (e: any) => void;
   formType?: string;
   value: State;
+  msg?: string;
 }
 
-const Form: FC<IProps> = ({ formType, onSubmit, handleChange, value }) => {
+const AlertMsg: FC<{ msg: string; type: string }> = ({ msg, type }) => {
+  const [open, setOpen] = React.useState(true);
+  useEffect(() => {
+    setOpen(true);
+  }, [msg]);
+  return (
+    <Collapse in={open}>
+      <Alert
+        severity='info'
+        style={{ marginBottom: "20px", maxWidth: 400 }}
+        action={
+          <IconButton
+            aria-label='close'
+            color='inherit'
+            size='small'
+            onClick={() => {
+              setOpen(false);
+            }}>
+            <CloseIcon fontSize='inherit' />
+          </IconButton>
+        }>
+        {msg}
+      </Alert>
+    </Collapse>
+  );
+};
+
+const Form: FC<IProps> = ({ formType, onSubmit, handleChange, value, msg }) => {
   const history = useHistory();
 
   const onGoogleLogin = () => {
-    // GoogleLogin((r:any) => {
-    //   Authenticate(r, () => {
-    //     history.push("/");
-    //   });
-    // });
+    GoogleLogin((r: any) => {
+      Authenticate(r, () => {
+        history.push("/");
+      });
+    });
   };
   const onFacebookLogin = () => {
     // FacebookLogin((r) => {
@@ -34,6 +65,11 @@ const Form: FC<IProps> = ({ formType, onSubmit, handleChange, value }) => {
     <div className='form-wrapper'>
       <Box className='form-container' p={1}>
         {formType === "login" ? <h2>Login</h2> : <h2>Sign Up</h2>}
+        {msg && (
+          <Alert severity='error' style={{ marginBottom: "20px", maxWidth: 400 }}>
+            {msg}
+          </Alert>
+        )}
         <div className='input-boxes'>
           {formType !== "login" && (
             <div className='input-box'>

@@ -7,6 +7,7 @@ import NoMatch from "../pages/PageNotFound";
 import SignUp from "../pages/SignUp/SignUp";
 import { ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import EmailConfirm from "../pages/EmailConfirm/EmailConfirm";
 
 const MRouter: FC = () => {
   return (
@@ -16,6 +17,7 @@ const MRouter: FC = () => {
       <Switch>
         <Route exact path='/' component={Main} />
         <Route exact path='/signup' component={SignUp} />
+        <Route exact path='/email/activate/:token' component={EmailConfirm} />
         <Route exact path='/login' component={Login} />
         <Route path='*' component={NoMatch} />
       </Switch>

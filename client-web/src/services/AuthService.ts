@@ -25,12 +25,12 @@ export interface ResProfile {
   msg: string;
 }
 
-export interface ResError {
+export interface ResMsg {
   msg: string;
-  error?: string;
+  error: string;
 }
 
-export const AuthSignUp = async (value: State, onSuccess: (r: ResError) => void) => {
+export const AuthSignUp = async (value: State, onSuccess: (r: string) => void) => {
   try {
     const res = await fetch(`${API}/user/signup`, {
       method: "POST",
@@ -40,12 +40,17 @@ export const AuthSignUp = async (value: State, onSuccess: (r: ResError) => void)
       },
       body: JSON.stringify(value),
     });
-    if (res.status === 201 && res.body) {
-      const r = (await res.json()) as ResError;
-      onSuccess(r);
-    } else if (res.status === 401 && res.body) {
-      const r = (await res.json()) as ResError;
-      AlertToast(r.msg);
+    if (res.status === 202 && res.body) {
+      const r = (await res.json()) as ResMsg;
+      onSuccess(r.msg);
+    } else if (res.status === 203 && res.body) {
+      const r = (await res.json()) as ResMsg;
+      onSuccess(r.msg);
+    } else if (res.status === 400 && res.body) {
+      const r = (await res.json()) as ResMsg;
+      onSuccess(r.error);
+    } else {
+      AlertToast("Something worng with Responce");
     }
   } catch (err) {
     console.log(err);
@@ -67,13 +72,34 @@ export const AuthLogin = async (value: State, onSuccess: (r: ResProfile) => void
       onSuccess(r);
       AlertToast(r.msg);
     } else if (res.status === 401 && res.body) {
-      const e = (await res.json()) as ResError;
+      const e = (await res.json()) as ResMsg;
       AlertToast(e.msg);
     } else if (res.body) {
-      const r = (await res.json()) as ResError;
+      const r = (await res.json()) as ResMsg;
       console.log("backend msg " + r);
     } else {
       console.log("notting");
+    }
+  } catch (err) {
+    console.log(err);
+  }
+};
+
+export const ConfrimEmail = async (token: string, onSuccess: (r: any) => void) => {
+  try {
+    const res = await fetch(`${API}/user/email/activate/${token}`, {
+      method: "GET",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+    if (res.status === 201 && res.body) {
+      const r = await res.json();
+      onSuccess(r);
+    } else {
+      const r = await res.json();
+      AlertToast(r.msg);
     }
   } catch (err) {
     console.log(err);
@@ -144,7 +170,7 @@ export const UserLogOut = async (next: any) => {
       method: "GET",
     });
     if (res.status === 201 && res.body) {
-      const r = (await res.json()) as ResError;
+      const r = (await res.json()) as ResMsg;
       console.log(r.msg);
     } else if (res.body) {
       const r = await res.json();
