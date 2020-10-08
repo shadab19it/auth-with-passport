@@ -1,11 +1,8 @@
 import { Router } from "express";
 import dotenv from "dotenv";
-import { mysqlRes, UserSignUp } from "../controler/auth";
+import { EmailActivation, mysqlRes, UserSignUp } from "../controler/auth";
 import { check, Result, validationResult } from "express-validator";
 import passport from "passport";
-import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt";
-import { myDB } from "../Config/dbConfig";
 dotenv.config();
 const router = Router();
 /**
@@ -49,7 +46,6 @@ router.post(
 router.get("/auth/google", passport.authenticate("google", { scope: ["profile", "email"] }));
 
 router.get("/auth/google/callback", passport.authenticate("google", { failureRedirect: "/api/user/auth/google/fail" }), (req: any, res) => {
-  res.setHeader("Access-Control-Allow-Origin", "*");
   return res.status(201).json({ user: req.user });
 });
 
@@ -65,46 +61,20 @@ router.get("/auth/facebook", passport.authenticate("facebook"));
 router.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/api/user/auth/facebook" }), (req, res) => {
   return res.status(201).json({ msg: "Login Successfull", user: req.user });
 });
-router.get("/email/activate/:token", (req, res) => {
-  const token = req.params.token;
-  jwt.verify(token, process.env.JWT_CONFIRM_EMAIL_KEY, async (err, decodeToken) => {
-    console.log("decode ", decodeToken);
-    const { username, email, password } = decodeToken as any;
-    //========= Hashing The Password ==========//
-    let hasHpassword;
-    try {
-      hasHpassword = await bcrypt.hash(password, 10);
-    } catch (err) {
-      return res.status(401).json({ msg: "Something worng with password" });
-    }
-    const newMember = {
-      username,
-      email,
-      hasHpassword,
-      profile_image_path: "",
-    };
-    const sql = `INSERT INTO members SET ?`;
-    myDB.query(sql, newMember, (err, result: mysqlRes) => {
-      if (err) {
-        return res.status(401).json({ msg: "user not not sign up" });
-      }
-      res.redirect("http://localhost:3000/login");
-    });
-  });
-});
 
-export const checkAuth = (req, res, next) => {
-  passport.authenticate("jwt", { session: false }, (err, user, info) => {
-    if (!user) {
-      return res.status(401).json({ msg: "you are not loged In" });
-    }
-    return next();
-  })(req, res, next);
-};
+/**
+ * Email Confirm Callback
+ */
+router.get("/email/activate/:token", EmailActivation);
 
 /**
  * LogOut route
  */
+
+// router.get("/test", (req, res) => {
+//   console.log(req);
+//   res.json(req);
+// });
 
 // router.get("/logout", UserLogOut);
 

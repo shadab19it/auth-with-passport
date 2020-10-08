@@ -8,8 +8,6 @@ import { findUserById, mysqlRes } from "../controler/auth";
 import bcrypt from "bcrypt";
 
 import dotenv from "dotenv";
-import { validationResult } from "express-validator";
-import flash from "express-flash";
 dotenv.config();
 
 export interface IUserRes {
@@ -36,7 +34,7 @@ const InitializePassport = (passport: any) => {
           return done(null, false, { message: "You are not register " });
         }
         try {
-          if (await bcrypt.compare(password, result[0].hasHpassword)) {
+          if (await bcrypt.compareSync(password, result[0].hasHpassword)) {
             result[0].hasHpassword = undefined;
             const { id, username, email } = result[0];
             const token = jwt.sign({ id, username, email }, process.env.JWT_SECRET_KEY);
@@ -138,6 +136,7 @@ const InitializePassport = (passport: any) => {
       {
         jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
         secretOrKey: process.env.JWT_SECRET_KEY,
+        // algorithms:['rs256']
       },
       async (jwtPayload, done) => {
         try {
